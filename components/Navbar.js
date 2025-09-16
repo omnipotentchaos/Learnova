@@ -74,7 +74,7 @@ export function Navbar() {
 
   // Get user profile image safely
   const getUserPhoto = () => {
-    console.log(user.photoURL);
+    // console.log(user.photoURL);
     return user?.photoURL || null;
   };
 

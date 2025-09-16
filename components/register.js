@@ -1,11 +1,13 @@
 "use client";
-import { useState } from "react";
-import React from "react";
 
+import { useEffect, useRef, useState } from "react";
+import React from "react";
 import { Upload, User, Mail, Hash, Sparkles, CheckCircle } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [rollNo, setRollNo] = useState("");
   const [email, setEmail] = useState("");
@@ -13,6 +15,13 @@ export default function RegisterPage() {
   const [registeredUser, setRegisteredUser] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // ✅ CORRECT LOCATION: Prefill email from auth user using useEffect
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]); // Depend on 'user' to run when the auth state changes
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,14 +44,15 @@ export default function RegisterPage() {
       });
 
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.success) {
+        // ✅ Check for HTTP success status first
         setRegisteredUser(data.userData);
         setName("");
         setRollNo("");
-        setEmail("");
+        setEmail(user?.email || ""); // ✅ Reset email to auth user's email
         setPhoto(null);
       } else {
-        setError(data.error);
+        setError(data.error || "An unknown error occurred."); // ✅ Provide a default error message
       }
     } catch (err) {
       setError("Network error. Please try again.");
@@ -128,6 +138,7 @@ export default function RegisterPage() {
                   />
                 </div>
 
+                {/* Email (auto from auth, read-only) */}
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-slate-200 font-medium">
                     <Mail className="w-4 h-4 text-pink-400" />
@@ -135,11 +146,9 @@ export default function RegisterPage() {
                   </label>
                   <input
                     type="email"
-                    placeholder="Enter your email address"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-300 backdrop-blur-sm"
+                    readOnly // ✅ user cannot change
+                    className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-slate-400 cursor-not-allowed"
                   />
                 </div>
 
